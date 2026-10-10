@@ -1,0 +1,58 @@
+{
+ "geode": "5.11.1",
+ "gd": {
+  "win": "*",
+  "android": "*",
+  "mac": "*",
+  "ios": "*"
+ },
+ "id": "rebornecc.memechaos",
+ "name": "Meme Chaos",
+ "version": "v1.1.0",
+ "developer": "RebornECC",
+ "description": "Meme mod: funny roasts when you die, GG on completion, meme sounds and a pile of random chaos events (smug face, mirror, lights out, fake errors and more). Visual only, never changes gameplay.",
+ "settings": {
+  "roast": {
+   "type": "bool",
+   "name": "Roasts",
+   "description": "Show a funny message when you die and when you win.",
+   "default": true
+  },
+  "sounds": {
+   "type": "bool",
+   "name": "Meme sounds",
+   "description": "Play pitch-shifted sounds on death, win and chaos events.",
+   "default": true
+  },
+  "chaos": {
+   "type": "bool",
+   "name": "Chaos events",
+   "description": "Random visual gags while you play: screen flashes, flying words, rainbow player.",
+   "default": true
+  },
+  "chaos-interval": {
+   "type": "int",
+   "name": "Chaos interval (seconds)",
+   "description": "Average time between chaos events.",
+   "default": 12,
+   "min": 5,
+   "max": 60,
+   "control": {
+    "slider": true,
+    "input": true
+   }
+  },
+  "troll": {
+   "type": "bool",
+   "name": "Smug face jumpscare",
+   "description": "Sometimes a big smug face covers the screen for 2 seconds.",
+   "default": true
+  },
+  "mirror": {
+   "type": "bool",
+   "name": "Mirror and upside-down events",
+   "description": "Sometimes the picture is mirrored or flipped for 3 seconds (visual only).",
+   "default": true
+  }
+ }
+}
