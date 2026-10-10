@@ -8,9 +8,9 @@
  },
  "id": "rebornecc.memechaos",
  "name": "Meme Chaos",
- "version": "v1.1.0",
+ "version": "v1.2.0",
  "developer": "RebornECC",
- "description": "Meme mod: funny roasts when you die, GG on completion, meme sounds and a pile of random chaos events (smug face, mirror, lights out, fake errors and more). Visual only, never changes gameplay.",
+ "description": "Meme mod: funny roasts when you die, GG on completion, meme sounds and a pile of random chaos events (black screens, fake errors, ads, updates, YOU DIED, mirror and more). No faces. Visual only, never changes gameplay.",
  "settings": {
   "roast": {
    "type": "bool",
@@ -42,10 +42,10 @@
     "input": true
    }
   },
-  "troll": {
+  "blackout": {
    "type": "bool",
-   "name": "Smug face jumpscare",
-   "description": "Sometimes a big smug face covers the screen for 2 seconds.",
+   "name": "Black screen events",
+   "description": "Sometimes the screen goes black for up to 2 seconds with a funny caption (visual only).",
    "default": true
   },
   "mirror": {
