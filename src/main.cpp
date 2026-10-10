@@ -16,7 +16,7 @@ namespace mm {
     inline bool roast() { return Mod::get()->getSettingValue<bool>("roast"); }
     inline bool sounds() { return Mod::get()->getSettingValue<bool>("sounds"); }
     inline bool chaos() { return Mod::get()->getSettingValue<bool>("chaos"); }
-    inline bool troll() { return Mod::get()->getSettingValue<bool>("troll"); }
+    inline bool blackout() { return Mod::get()->getSettingValue<bool>("blackout"); }
     inline bool mirror() { return Mod::get()->getSettingValue<bool>("mirror"); }
     inline float interval() { return (float)Mod::get()->getSettingValue<int64_t>("chaos-interval"); }
 
@@ -103,54 +103,107 @@ namespace mm {
             nullptr));
     }
 
-    // an original smug yellow face drawn from shapes (big, covers the screen for a moment)
-    inline void smugFace(CCNode* parent) {
-        auto win = CCDirector::get()->getWinSize();
-        auto d = CCDrawNode::create();
-        auto yellow = ccc4f(1.f, 0.82f, 0.2f, 1.f);
-        auto dark = ccc4f(0.1f, 0.1f, 0.1f, 1.f);
-        auto white = ccc4f(1.f, 1.f, 1.f, 1.f);
-        d->drawDot({0.f, 0.f}, 100.f, yellow);
-        d->drawDot({-38.f, 25.f}, 20.f, white);
-        d->drawDot({38.f, 25.f}, 20.f, white);
-        d->drawDot({-28.f, 25.f}, 9.f, dark);
-        d->drawDot({48.f, 25.f}, 9.f, dark);
-        d->drawSegment({-62.f, 60.f}, {-18.f, 74.f}, 4.f, dark);
-        d->drawSegment({18.f, 62.f}, {62.f, 52.f}, 4.f, dark);
-        std::vector<CCPoint> mouth;
-        for (int i = 0; i <= 20; i++) {
-            float t = i / 20.f;
-            float k = 2.f * t - 1.f;
-            mouth.push_back({-60.f + 120.f * t, -20.f - 42.f * (1.f - k * k)});
-        }
-        mouth.push_back({60.f, -20.f});
-        mouth.push_back({-60.f, -20.f});
-        d->drawPolygon(mouth.data(), (unsigned)mouth.size(), white, 3.f, dark);
-        for (int i = 1; i < 6; i++) {
-            float x = -60.f + 20.f * i;
-            float k = x / 60.f;
-            d->drawSegment({x, -20.f}, {x, -20.f - 42.f * (1.f - k * k)}, 1.5f, dark);
-        }
-        float sc = win.height * 0.85f / 200.f;
-        d->setScale(0.1f);
-        d->setPosition({win.width / 2, win.height / 2});
-        parent->addChild(d, 3000);
-        d->runAction(CCSequence::create(
-            CCEaseBackOut::create(CCScaleTo::create(0.25f, sc)),
-            CCDelayTime::create(1.5f),
-            CCEaseBackIn::create(CCScaleTo::create(0.25f, 0.01f)),
-            CCRemoveSelf::create(),
-            nullptr));
-        pop(parent, "TROLLED", ccc3(255, 255, 255), 1.f, {win.width / 2, win.height * 0.12f}, 1.6f);
-        sfx("explode_11.ogg", 0.4f);
-    }
-
+    // short blackout (1.5 s) and long black screen with a caption (2 s)
     inline void darkness(CCNode* parent) {
         auto win = CCDirector::get()->getWinSize();
         auto layer = CCLayerColor::create(ccc4(0, 0, 0, 235), win.width, win.height);
         parent->addChild(layer, 2500);
         layer->runAction(CCSequence::create(CCDelayTime::create(1.1f), CCFadeOut::create(0.4f), CCRemoveSelf::create(), nullptr));
         pop(parent, "lights out", ccc3(255, 255, 255), 0.6f, {win.width / 2, win.height / 2}, 0.8f);
+    }
+
+    inline void blackScreen(CCNode* parent) {
+        static char const* const CAPTIONS[] = {
+            "loading...", "you have been trolled", "no signal", "skill issue", "please wait", "buffering 99%"
+        };
+        auto win = CCDirector::get()->getWinSize();
+        auto layer = CCLayerColor::create(ccc4(0, 0, 0, 255), win.width, win.height);
+        parent->addChild(layer, 3000);
+        layer->runAction(CCSequence::create(CCDelayTime::create(1.7f), CCFadeOut::create(0.3f), CCRemoveSelf::create(), nullptr));
+        auto t = CCLabelBMFont::create(CAPTIONS[rnd(6)], "bigFont.fnt");
+        t->setScale(0.7f);
+        t->setPosition({win.width / 2, win.height / 2});
+        parent->addChild(t, 3001);
+        t->runAction(CCSequence::create(CCDelayTime::create(1.7f), CCFadeOut::create(0.3f), CCRemoveSelf::create(), nullptr));
+        sfx("explode_11.ogg", 0.4f);
+    }
+
+    // coloured strip across the screen with a caption
+    inline void banner(CCNode* parent, char const* text, ccColor4B bg, ccColor3B fg, float yFrac, float hold, float scale = 0.8f) {
+        auto win = CCDirector::get()->getWinSize();
+        auto strip = CCLayerColor::create(bg, win.width, 56.f);
+        strip->setPosition({0.f, win.height * yFrac - 28.f});
+        parent->addChild(strip, 2400);
+        auto t = CCLabelBMFont::create(text, "bigFont.fnt");
+        t->setColor(fg);
+        t->setScale(scale);
+        t->setPosition({win.width / 2, 28.f});
+        strip->addChild(t);
+        strip->runAction(CCSequence::create(CCDelayTime::create(hold), CCFadeOut::create(0.3f), CCRemoveSelf::create(), nullptr));
+        t->runAction(CCSequence::create(CCDelayTime::create(hold), CCFadeOut::create(0.3f), nullptr));
+    }
+
+    inline void tint(CCNode* parent, ccColor4B c, float hold) {
+        auto win = CCDirector::get()->getWinSize();
+        auto layer = CCLayerColor::create(c, win.width, win.height);
+        parent->addChild(layer, 1400);
+        layer->runAction(CCSequence::create(CCDelayTime::create(hold), CCFadeOut::create(0.4f), CCRemoveSelf::create(), nullptr));
+    }
+
+    inline void corner(CCNode* parent, char const* text, CCPoint pos, float hold, ccColor3B color = ccc3(255, 255, 255)) {
+        auto l = CCLabelBMFont::create(text, "bigFont.fnt");
+        l->setColor(color);
+        l->setScale(0.45f);
+        l->setPosition(pos);
+        parent->addChild(l, 2700);
+        l->runAction(CCSequence::create(CCDelayTime::create(hold), CCFadeOut::create(0.3f), CCRemoveSelf::create(), nullptr));
+    }
+
+    inline void memeText(CCNode* parent, int which) {
+        auto win = CCDirector::get()->getWinSize();
+        switch (which) {
+            case 0: // dark-souls style
+                tint(parent, ccc4(0, 0, 0, 90), 1.6f);
+                banner(parent, "YOU DIED", ccc4(0, 0, 0, 200), ccc3(190, 20, 20), 0.5f, 1.8f, 1.3f);
+                sfx("explode_11.ogg", 0.3f);
+                break;
+            case 1: // to be continued, sepia
+                tint(parent, ccc4(150, 95, 30, 110), 2.f);
+                corner(parent, "To be continued >", {win.width * 0.25f, win.height * 0.1f}, 2.f, ccc3(255, 190, 70));
+                sfx("magicExplosion.ogg", 0.6f, 0.8f);
+                break;
+            case 2:
+                banner(parent, "MISSION FAILED", ccc4(0, 0, 0, 180), ccc3(240, 240, 240), 0.5f, 1.6f, 1.1f);
+                corner(parent, "we'll get 'em next time", {win.width / 2, win.height * 0.4f}, 1.6f);
+                break;
+            case 3:
+                banner(parent, "Updating... 99%", ccc4(0, 90, 190, 235), ccc3(255, 255, 255), 0.5f, 1.8f, 0.9f);
+                corner(parent, "do not turn off your phone", {win.width / 2, win.height * 0.38f}, 1.8f);
+                break;
+            case 4: // fake ad
+                corner(parent, "Ad  0:05  [skip]", {win.width - 100.f, win.height - 20.f}, 2.2f, ccc3(255, 220, 80));
+                banner(parent, "BUY NOW: 0 sleep", ccc4(200, 30, 120, 220), ccc3(255, 255, 255), 0.18f, 2.2f, 0.6f);
+                break;
+            case 5:
+                banner(parent, "Battery 1%", ccc4(200, 30, 30, 230), ccc3(255, 255, 255), 0.5f, 1.4f, 1.f);
+                sfx("playSound_01.ogg", 0.5f);
+                break;
+            case 6:
+                pop(parent, "STONKS", ccc3(110, 255, 150), 1.4f, {win.width / 2, win.height * 0.55f}, 1.f);
+                pop(parent, "NOT STONKS", ccc3(255, 90, 90), 1.f, {win.width / 2, win.height * 0.3f}, 1.f);
+                break;
+            case 7:
+                banner(parent, "never gonna give you up", ccc4(20, 20, 20, 220), ccc3(255, 255, 255), 0.5f, 1.8f, 0.6f);
+                sfx("crystal01.ogg", 0.8f);
+                break;
+            case 8:
+                banner(parent, "Like and subscribe", ccc4(220, 20, 20, 230), ccc3(255, 255, 255), 0.82f, 1.8f, 0.7f);
+                break;
+            default:
+                corner(parent, "FPS: 3", {60.f, win.height - 20.f}, 1.8f, ccc3(255, 90, 90));
+                banner(parent, "LAG", ccc4(0, 0, 0, 160), ccc3(255, 255, 255), 0.5f, 1.4f, 1.f);
+                break;
+        }
     }
 
     inline void fakeError(CCNode* parent) {
@@ -218,19 +271,20 @@ namespace mm {
 
     inline void chaosEvent(PlayLayer* pl) {
         auto win = CCDirector::get()->getWinSize();
-        switch (rnd(12)) {
+        switch (rnd(15)) {
             case 0: flash(pl); sfx("playSound_01.ogg", rndf(0.4f, 1.6f)); break;
             case 1: flyby(pl); flyby(pl); break;
             case 2: rainbowLeft = 4.f; pop(pl, "RAINBOW TIME", fromHue(rndf(0.f, 6.28f)), 0.7f, {win.width / 2, win.height * 0.8f}, 1.2f); break;
             case 3: pop(pl, pick(WORDS), fromHue(rndf(0.f, 6.28f)), 1.6f, {win.width / 2, win.height / 2}, 0.5f); sfx("explode_11.ogg", rndf(0.3f, 0.6f), 0.7f); break;
             case 4: flash(pl); flyby(pl); sfx("crystal01.ogg", rndf(0.5f, 2.f)); break;
-            case 5: if (troll()) smugFace(pl); else flash(pl); break;
+            case 5: if (blackout()) blackScreen(pl); else flash(pl); break;
             case 6: fakeError(pl); break;
-            case 7: darkness(pl); break;
+            case 7: if (blackout()) darkness(pl); else flash(pl); break;
             case 8: if (mirror() && viewMode == 0) { setView(pl, 1); pop(pl, "MIRROR", ccc3(120, 200, 255), 0.6f, {win.width / 2, win.height * 0.85f}, 1.f); } else flyby(pl); break;
             case 9: if (mirror() && viewMode == 0) { setView(pl, 2); pop(pl, "UPSIDE DOWN", ccc3(255, 200, 120), 0.6f, {win.width / 2, win.height * 0.15f}, 1.f); } else flash(pl); break;
             case 10: wordRain(pl); break;
-            default: fakeAchievement(pl); break;
+            case 11: fakeAchievement(pl); break;
+            default: memeText(pl, rnd(10)); break;
         }
     }
 
