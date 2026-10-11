@@ -8,9 +8,9 @@
  },
  "id": "rebornecc.memechaos",
  "name": "Meme Chaos",
- "version": "v1.2.0",
+ "version": "v2.0.0",
  "developer": "RebornECC",
- "description": "Meme mod: funny roasts when you die, GG on completion, meme sounds and a pile of random chaos events (black screens, fake errors, ads, updates, YOU DIED, mirror and more). No faces. Visual only, never changes gameplay.",
+ "description": "Random meme events while you play: roasts on death, fake system dialogs, notifications, captcha, news ticker, full-screen gags and more. No faces, visual only, never changes gameplay.",
  "settings": {
   "roast": {
    "type": "bool",
@@ -41,12 +41,6 @@
     "slider": true,
     "input": true
    }
-  },
-  "blackout": {
-   "type": "bool",
-   "name": "Black screen events",
-   "description": "Sometimes the screen goes black for up to 2 seconds with a funny caption (visual only).",
-   "default": true
   },
   "mirror": {
    "type": "bool",
