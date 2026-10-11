@@ -80,8 +80,8 @@ namespace mm {
 
     inline void ticker(PlayLayer* p) {
         static char const* const NEWS[] = {
-            "player dies again, sources say", "local man blames lag, lag denies it",
-            "spike unharmed in incident", "experts confirm: it was the spike", "breaking: nothing happened"
+            "a man pressed jump, and it ended", "the spike has no comment",
+            "lag blamed, lag denies", "witness saw the whole thing, says nothing", "today: slightly bad weather"
         };
         auto bar = CCLayerColor::create(b4(pal::INK, 240), W().width, 28.f);
         auto t = label(bar, NEWS[rnd(5)], 0.34f, {W().width + 20.f, 14.f});
@@ -158,12 +158,12 @@ namespace mm {
 
     inline std::vector<Fn> eventsB() {
         return {
-            [](PlayLayer* p) { dialog(p, "Error", "An error has occurred.\nThe error is: error.", "OK", pal::RED); sfx("quitSound_01.ogg", 0.8f); },
-            [](PlayLayer* p) { dialog(p, "Incoming call", "nobody is calling\nanswer anyway", "Accept", pal::LIME); sfx("playSound_01.ogg", 1.4f); },
-            [](PlayLayer* p) { dialog(p, "Storage full", "delete 3 photos to keep playing", "Delete", pal::AMBER); },
-            [](PlayLayer* p) { dialog(p, "Cookies", "we use cookies. accept?\n[ yes ]     [ yes ]", "Accept", pal::VIOLET); },
-            [](PlayLayer* p) { dialog(p, "Update available", "restart now to update", "Later", pal::CYAN); },
-            [](PlayLayer* p) { dialog(p, "Hello?", "are you still playing?", "Yes", pal::PINK); },
+            [](PlayLayer* p) { dialog(p, "Error", "Something went wrong.\nWe know. You know.", "OK", pal::RED); sfx("quitSound_01.ogg", 0.8f); },
+            [](PlayLayer* p) { dialog(p, "Incoming call", "nobody is calling\nstill ringing", "Answer", pal::LIME); sfx("playSound_01.ogg", 1.4f); },
+            [](PlayLayer* p) { dialog(p, "Storage full", "free up 3 gigabytes\nor 3 attempts", "Delete", pal::AMBER); },
+            [](PlayLayer* p) { dialog(p, "Cookies", "we use cookies\nthe other option is also cookies", "Accept", pal::VIOLET); },
+            [](PlayLayer* p) { dialog(p, "Update available", "restart to finish\nyour update, 1 of 412", "Later", pal::CYAN); },
+            [](PlayLayer* p) { dialog(p, "Hello", "it is quiet\ndid something break", "No", pal::PINK); },
             [](PlayLayer* p) { dialog(p, "Terms", "scroll to accept\npage 1 of 9999", "Scroll", pal::GREY); },
             [](PlayLayer* p) { captcha(p); },
             [](PlayLayer* p) { crack(p); },
@@ -171,9 +171,9 @@ namespace mm {
             [](PlayLayer* p) { bounce(p); },
             [](PlayLayer* p) { ticker(p); },
             [](PlayLayer* p) { rec(p); },
-            [](PlayLayer* p) { cinema(p, "[vine boom]"); sfx("explode_11.ogg", 0.4f); },
-            [](PlayLayer* p) { cinema(p, "[sad violin]"); },
-            [](PlayLayer* p) { cinema(p, "[tense music]"); },
+            [](PlayLayer* p) { cinema(p, "[loud noise]"); sfx("explode_11.ogg", 0.4f); },
+            [](PlayLayer* p) { cinema(p, "[a door closes]"); },
+            [](PlayLayer* p) { cinema(p, "[someone breathes]"); },
             [](PlayLayer* p) { pauseIcon(p); },
             [](PlayLayer* p) { wordRain(p); },
             [](PlayLayer* p) { flyby(p); flyby(p); },
