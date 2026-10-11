@@ -3,9 +3,10 @@
 
 namespace mm {
     using Fn = void (*)(PlayLayer*);
+    constexpr char const* FONT = "bigFont.fnt";
 
-    inline CCLabelBMFont* label(CCNode* n, char const* t, float scale, CCPoint pos, ccColor3B col = ccc3(255, 255, 255),
-                                float rot = 0.f, char const* font = "bigFont.fnt", int z = 5) {
+    inline CCLabelBMFont* label(CCNode* n, char const* t, float scale, CCPoint pos, ccColor3B col = pal::WHITE,
+                                float rot = 0.f, char const* font = FONT, int z = 5) {
         auto l = CCLabelBMFont::create(t, font);
         l->setColor(col);
         l->setScale(scale);
@@ -15,8 +16,9 @@ namespace mm {
         return l;
     }
 
-    inline CCLabelBMFont* labelF(CCNode* n, char const* t, float xf, float yf, float scale, ccColor3B col = ccc3(255, 255, 255), float rot = 0.f) {
-        return label(n, t, scale, {W().width * xf, W().height * yf}, col, rot);
+    inline void fit(CCLabelBMFont* l, float maxW) {
+        float w = l->getContentSize().width * l->getScale();
+        if (w > maxW) l->setScale(l->getScale() * maxW / w);
     }
 
     inline void rect(CCDrawNode* d, float x, float y, float w, float h, ccColor4F c) {
@@ -24,9 +26,14 @@ namespace mm {
         d->drawPolygon(v, 4, c, 0.f, c);
     }
 
-    inline void slant(CCDrawNode* d, float x0, float w, float h, float shift, ccColor4F c) {
-        CCPoint v[4] = {{x0, 0.f}, {x0 + w, 0.f}, {x0 + w + shift, h}, {x0 + shift, h}};
-        d->drawPolygon(v, 4, c, 0.f, c);
+    inline void roundRect(CCDrawNode* d, float x, float y, float w, float h, float r, ccColor4F c) {
+        r = std::min(r, std::min(w, h) / 2.f);
+        rect(d, x + r, y, w - 2 * r, h, c);
+        rect(d, x, y + r, w, h - 2 * r, c);
+        d->drawDot({x + r, y + r}, r, c);
+        d->drawDot({x + w - r, y + r}, r, c);
+        d->drawDot({x + r, y + h - r}, r, c);
+        d->drawDot({x + w - r, y + h - r}, r, c);
     }
 
     inline void later(CCNode* n, float hold) {
@@ -39,7 +46,63 @@ namespace mm {
             nullptr), times));
     }
 
-    inline CCNode* screen(CCNode* parent, float hold = 1.6f) {
+    // centred node with a soft drop shadow, a thin border and a rounded body
+    inline CCNode* card(CCNode* parent, float w, float h, ccColor4F fill, ccColor4F border, float r = 12.f, int z = 2600) {
+        auto n = CCNode::create();
+        n->setContentSize({w, h});
+        n->setAnchorPoint({0.5f, 0.5f});
+        n->ignoreAnchorPointForPosition(false);
+        auto d = CCDrawNode::create();
+        d->setTag(1);
+        n->addChild(d, 0);
+        roundRect(d, 3.f, -5.f, w, h, r, ccc4f(0.f, 0.f, 0.f, 0.35f));
+        roundRect(d, -1.5f, -1.5f, w + 3.f, h + 3.f, r + 1.5f, border);
+        roundRect(d, 0.f, 0.f, w, h, r, fill);
+        parent->addChild(n, z);
+        return n;
+    }
+
+    inline CCDrawNode* drawOf(CCNode* n) { return static_cast<CCDrawNode*>(n->getChildByTag(1)); }
+
+    inline void popCard(CCNode* n, float hold) {
+        n->setScale(0.7f);
+        n->runAction(CCSequence::create(
+            CCEaseBackOut::create(CCScaleTo::create(0.22f, 1.f)), CCDelayTime::create(hold),
+            CCEaseBackIn::create(CCScaleTo::create(0.18f, 0.01f)), CCRemoveSelf::create(), nullptr));
+    }
+
+    // brand text: pink and cyan split behind the main colour, soft shadow below
+    inline CCNode* glitch(CCNode* parent, char const* t, float scale, ccColor3B col, CCPoint pos, float rot = 0.f, int z = 5) {
+        auto n = CCNode::create();
+        n->setPosition(pos);
+        n->setRotation(rot);
+        parent->addChild(n, z);
+        float o = std::max(1.5f, 3.f * scale);
+        auto sh = label(n, t, scale, {0.f, -o * 1.6f}, ccc3(0, 0, 0), 0.f, FONT, 0);
+        sh->setOpacity(110);
+        label(n, t, scale, {-o, o * 0.4f}, pal::PINK, 0.f, FONT, 1);
+        label(n, t, scale, {o, -o * 0.4f}, pal::CYAN, 0.f, FONT, 2);
+        label(n, t, scale, {0.f, 0.f}, col, 0.f, FONT, 3);
+        return n;
+    }
+
+    inline void burst(CCNode* parent, CCPoint at, int count = 10) {
+        ccColor3B cols[5] = {pal::PINK, pal::CYAN, pal::LIME, pal::AMBER, pal::VIOLET};
+        for (int i = 0; i < count; i++) {
+            auto q = CCLayerColor::create(b4(cols[i % 5]), 8.f, 8.f);
+            q->setPosition(at);
+            q->setRotation(rndf(0.f, 90.f));
+            parent->addChild(q, 2100);
+            float a = rndf(0.f, 6.283f), r = rndf(50.f, 110.f);
+            q->runAction(CCSequence::create(
+                CCSpawn::create(CCEaseOut::create(CCMoveBy::create(0.6f, {std::cos(a) * r, std::sin(a) * r}), 2.f), CCFadeOut::create(0.6f), nullptr),
+                CCRemoveSelf::create(), nullptr));
+        }
+    }
+
+    // full-screen stage: vertical gradient, thin inner frame, pop in / pop out
+    struct Stage { CCNode* n; CCDrawNode* d; };
+    inline Stage stage(CCNode* parent, ccColor3B top, ccColor3B bottom, ccColor3B frameCol = pal::WHITE, float hold = 1.6f) {
         auto n = CCNode::create();
         n->setContentSize(W());
         n->setAnchorPoint({0.5f, 0.5f});
@@ -47,96 +110,30 @@ namespace mm {
         n->setPosition({W().width / 2, W().height / 2});
         n->setScale(0.6f);
         parent->addChild(n, 3000);
+        n->addChild(CCLayerGradient::create(b4(top), b4(bottom)), 0);
+        auto d = CCDrawNode::create();
+        n->addChild(d, 1);
+        auto fc = f4(frameCol, 0.35f);
+        float w = W().width, h = W().height;
+        rect(d, 12.f, 12.f, w - 24.f, 2.f, fc);
+        rect(d, 12.f, h - 14.f, w - 24.f, 2.f, fc);
+        rect(d, 12.f, 12.f, 2.f, h - 24.f, fc);
+        rect(d, w - 14.f, 12.f, 2.f, h - 24.f, fc);
         n->runAction(CCSequence::create(
             CCEaseBackOut::create(CCScaleTo::create(0.22f, 1.f)), CCDelayTime::create(hold),
             CCEaseBackIn::create(CCScaleTo::create(0.2f, 0.01f)), CCRemoveSelf::create(), nullptr));
-        return n;
+        return {n, d};
     }
 
-    inline CCDrawNode* canvas(CCNode* n, ccColor4F bg) {
-        auto d = CCDrawNode::create();
-        n->addChild(d, 0);
-        rect(d, 0.f, 0.f, W().width, W().height, bg);
-        return d;
+    inline void scanlines(CCDrawNode* d, float alpha = 0.14f) {
+        for (float y = 0.f; y < W().height; y += 4.f) rect(d, 0.f, y, W().width, 1.f, ccc4f(0.f, 0.f, 0.f, alpha));
     }
 
-    inline void splash(CCNode* parent, char const* text, ccColor3B color, float scale, float yFrac = 0.5f, bool shk = false) {
-        auto l = CCLabelBMFont::create(text, "bigFont.fnt");
-        l->setColor(color);
-        l->setScale(0.1f);
-        l->setPosition({W().width / 2, W().height * yFrac});
-        l->setRotation((float)(rnd(13) - 6));
-        parent->addChild(l, 2000);
-        l->runAction(CCSequence::create(
-            CCEaseBackOut::create(CCScaleTo::create(0.2f, scale)), CCDelayTime::create(1.1f),
-            CCFadeOut::create(0.3f), CCRemoveSelf::create(), nullptr));
-        if (shk) shake(l, 4.f, 8);
-    }
-
-    inline void pop(CCNode* parent, char const* text, ccColor3B color, float scale, CCPoint pos, float hold) {
-        auto l = CCLabelBMFont::create(text, "bigFont.fnt");
-        l->setColor(color);
-        l->setScale(0.1f);
-        l->setPosition(pos);
-        l->setRotation((float)(rnd(17) - 8));
-        parent->addChild(l, 2000);
-        l->runAction(CCSequence::create(
-            CCEaseBackOut::create(CCScaleTo::create(0.25f, scale)), CCDelayTime::create(hold),
-            CCFadeOut::create(0.3f), CCRemoveSelf::create(), nullptr));
-    }
-
-    inline void tint(CCNode* parent, ccColor4B c, float hold) {
-        auto layer = CCLayerColor::create(c, W().width, W().height);
-        parent->addChild(layer, 1400);
-        layer->runAction(CCSequence::create(CCDelayTime::create(hold), CCFadeOut::create(0.4f), CCRemoveSelf::create(), nullptr));
-    }
-
-    inline void flash(CCNode* parent) {
-        tint(parent, ccc4(60 + rnd(196), 60 + rnd(196), 60 + rnd(196), 110), 0.1f);
-    }
-
-    inline void strip(CCNode* parent, char const* text, ccColor4B bg, ccColor3B fg, float yFrac, float hold, float scale = 0.7f) {
-        auto s = CCLayerColor::create(bg, W().width, 56.f);
-        s->setPosition({0.f, W().height * yFrac - 28.f});
-        parent->addChild(s, 2400);
-        label(s, text, scale, {W().width / 2, 28.f}, fg);
-        later(s, hold);
-    }
-
-    inline void toast(CCNode* parent, char const* title, char const* body, bool left = true) {
-        float w = 220.f, h = 52.f;
-        auto card = CCLayerColor::create(ccc4(28, 28, 34, 240), w, h);
-        float x = left ? 8.f : W().width - w - 8.f;
-        card->setPosition({x, W().height + 4.f});
-        label(card, title, 0.3f, {w / 2, h - 14.f}, ccc3(150, 160, 190));
-        label(card, body, 0.34f, {w / 2, 16.f}, ccc3(255, 255, 255));
-        parent->addChild(card, 2600);
-        card->runAction(CCSequence::create(
-            CCMoveBy::create(0.25f, {0.f, -(h + 12.f)}), CCDelayTime::create(1.7f),
-            CCMoveBy::create(0.25f, {0.f, h + 12.f}), CCRemoveSelf::create(), nullptr));
-        sfx("playSound_01.ogg", 1.6f, 0.6f);
-    }
-
-    inline CCNode* dialog(CCNode* parent, char const* title, char const* body, char const* button, ccColor4B bar = ccc4(20, 60, 150, 255), float hold = 2.f) {
-        float w = 270.f, h = 120.f;
-        auto box = CCLayerColor::create(ccc4(214, 214, 218, 255), w, h);
-        box->setPosition({W().width / 2 - w / 2, W().height / 2 - h / 2});
-        auto head = CCLayerColor::create(bar, w, 22.f);
-        head->setPosition({0.f, h - 22.f});
-        box->addChild(head, 1);
-        label(head, title, 0.28f, {w / 2, 11.f});
-        label(box, body, 0.3f, {w / 2, h * 0.55f}, ccc3(20, 20, 24));
-        auto b = CCLayerColor::create(ccc4(170, 170, 178, 255), 84.f, 22.f);
-        b->setPosition({w / 2 - 42.f, 10.f});
-        box->addChild(b, 1);
-        label(b, button, 0.28f, {42.f, 11.f}, ccc3(10, 10, 10));
-        box->setScale(0.1f);
-        box->setAnchorPoint({0.5f, 0.5f});
-        box->ignoreAnchorPointForPosition(false);
-        box->setPosition({W().width / 2, W().height / 2});
-        parent->addChild(box, 2600);
-        box->runAction(CCSequence::create(CCEaseBackOut::create(CCScaleTo::create(0.15f, 1.f)), CCDelayTime::create(hold), CCRemoveSelf::create(), nullptr));
-        return box;
+    inline void confetti(CCDrawNode* d, int count, ccColor3B const* cols, int ncols) {
+        for (int i = 0; i < count; i++) {
+            auto c = cols[rnd(ncols)];
+            rect(d, rndf(20.f, W().width - 30.f), rndf(20.f, W().height - 30.f), rndf(5.f, 11.f), rndf(5.f, 11.f), f4(c, 0.9f));
+        }
     }
 
     inline void setView(PlayLayer* pl, int mode) {
