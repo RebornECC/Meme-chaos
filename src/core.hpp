@@ -16,15 +16,15 @@ namespace mm {
     inline float interval() { return (float)Mod::get()->getSettingValue<int64_t>("chaos-interval"); }
 
     inline char const* const ROASTS[] = {
-        "ez", "uninstall", "nope", "skill issue", "lmao", "tf was that", "bro", "nu takoe",
-        "ya ne ponyal", "zhest", "again", "not even close", "cope", "L", "next", "nice try"
+        "the spike was right there", "gravity 1, you 0", "that was a choice", "hm.", "noted",
+        "nu takoe", "ya ne ponyal", "zhest", "again", "the floor won", "pls no", "kosyak", "eh", "ok, again"
     };
-    inline char const* const EARLY[] = {"first jump bro", "ten percent speedrun", "did you even start", "ya ne ponyal"};
-    inline char const* const CLOSE[] = {"so close", "pain", "that was the win", "spike said no", "zhest"};
-    inline char const* const STREAK[] = {"touch grass", "drink water", "try practice mode", "go to sleep", "nu takoe"};
-    inline char const* const WINS[] = {"gg", "ez", "W", "sheesh", "legend", "who let him cook"};
+    inline char const* const EARLY[] = {"that was the tutorial", "blink and it is over", "warm-up, right", "ya ne ponyal"};
+    inline char const* const CLOSE[] = {"one pixel off", "the spike heard you", "almost, in a way", "so close it hurts", "zhest"};
+    inline char const* const STREAK[] = {"ten. it is a number", "the level is not leaving", "drink some water", "try practice mode", "nu takoe"};
+    inline char const* const WINS[] = {"finally", "nobody saw that", "ok, that was clean", "done. go outside", "again? no"};
     inline char const* const WORDS[] = {
-        "SUS", "BRUH", "OOF", "NOICE", "WHAT", "L", "W", "SHEESH", "FR", "COPE", "BASED", "NPC", "RATIO", "ZHEST"
+        "OOF", "HMM", "UH", "AAA", "NOPE", "WAIT", "HELP", "NU", "YEP", "ZHEST", "KEK", "EH"
     };
 
     template <size_t N>
