@@ -65,6 +65,12 @@ namespace mm {
         CCDirector::get()->setAnimationInterval(lagSaved);
     }
 
+    namespace pal {
+        inline ccColor3B const INK{16, 14, 30}, PAPER{244, 244, 250}, PINK{255, 64, 110}, CYAN{60, 210, 255}, LIME{140, 255, 120},
+            AMBER{255, 196, 60}, VIOLET{160, 110, 255}, GREY{150, 156, 176}, RED{230, 50, 60}, BLUE{50, 100, 230}, WHITE{255, 255, 255};
+    }
+    inline ccColor4F f4(ccColor3B c, float a = 1.f) { return ccc4f(c.r / 255.f, c.g / 255.f, c.b / 255.f, a); }
+    inline ccColor4B b4(ccColor3B c, int a = 255) { return ccc4(c.r, c.g, c.b, a); }
     inline ccColor4F c4(float r, float g, float b, float a = 1.f) { return ccc4f(r, g, b, a); }
     inline CCSize W() { return CCDirector::get()->getWinSize(); }
 }
