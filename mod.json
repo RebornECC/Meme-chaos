@@ -8,7 +8,7 @@
  },
  "id": "rebornecc.memechaos",
  "name": "Meme Chaos",
- "version": "v2.2.0",
+ "version": "v2.3.0",
  "developer": "RebornECC",
  "description": "Random meme events while you play: roasts on death, fake system dialogs, notifications, captcha, news ticker, full-screen gags and more. No faces. Most events are visual only; the FPS drop event makes the game harder for 3 seconds (can be turned off).",
  "settings": {
