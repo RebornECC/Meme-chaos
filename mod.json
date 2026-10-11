@@ -8,9 +8,9 @@
  },
  "id": "rebornecc.memechaos",
  "name": "Meme Chaos",
- "version": "v2.0.0",
+ "version": "v2.1.0",
  "developer": "RebornECC",
- "description": "Random meme events while you play: roasts on death, fake system dialogs, notifications, captcha, news ticker, full-screen gags and more. No faces, visual only, never changes gameplay.",
+ "description": "Random meme events while you play: roasts on death, fake system dialogs, notifications, captcha, news ticker, full-screen gags and more. No faces. Most events are visual only; the FPS drop event makes the game harder for 3 seconds (can be turned off).",
  "settings": {
   "roast": {
    "type": "bool",
@@ -41,6 +41,12 @@
     "slider": true,
     "input": true
    }
+  },
+  "lag": {
+   "type": "bool",
+   "name": "FPS drop event",
+   "description": "Sometimes the frame rate drops to 5 FPS for 3 seconds, then goes back to what you had. This makes the game harder to play.",
+   "default": true
   },
   "mirror": {
    "type": "bool",
