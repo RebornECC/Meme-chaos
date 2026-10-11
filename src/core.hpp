@@ -37,6 +37,8 @@ namespace mm {
     inline float viewLeft = 0.f;
     inline int viewMode = 0;
     inline CCPoint viewOrigin = {0.f, 0.f};
+    inline float lagLeft = 0.f;
+    inline double lagSaved = 1.0 / 60.0;
     inline int recent[8] = {-1, -1, -1, -1, -1, -1, -1, -1};
 
     inline void sfx(char const* name, float speed, float volume = 1.f) {
@@ -48,6 +50,19 @@ namespace mm {
         float g = 0.5f + 0.5f * std::sin(h + 2.094f);
         float b = 0.5f + 0.5f * std::sin(h + 4.188f);
         return {(GLubyte)(r * 255), (GLubyte)(g * 255), (GLubyte)(b * 255)};
+    }
+
+    inline void lagStart() {
+        if (lagLeft > 0.f) return;
+        lagSaved = CCDirector::get()->getAnimationInterval();
+        CCDirector::get()->setAnimationInterval(1.0 / 5.0);
+        lagLeft = 3.f;
+    }
+
+    inline void lagEnd() {
+        if (lagLeft <= 0.f) return;
+        lagLeft = 0.f;
+        CCDirector::get()->setAnimationInterval(lagSaved);
     }
 
     inline ccColor4F c4(float r, float g, float b, float a = 1.f) { return ccc4f(r, g, b, a); }
